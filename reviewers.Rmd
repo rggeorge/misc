@@ -1,0 +1,24 @@
+## understand levers for reviewers
+library(zoo)
+library(ggplot2)
+rev <- read.csv("charlotte_reviewer.csv")
+
+months_joined <- sapply(rev$reviewer_yelper_since, as.yearmon)
+rev$months_since_joined = sapply(months_joined, function(x) round(12 * (2015 -x)))
+rev$reviews_per_month = rev$reviewer_review_count / rev$months_since_joined
+
+rev$compliments_per_review = rev$reviewer_num_compliments / rev$reviewer_review_count
+
+rev_filtered <- rev[is.finite(rev$reviews_per_month),]
+
+fit <- glm(reviews_per_month ~ 
+            reviewer_fans * 
+            reviewer_num_friends *
+            compliments_per_review +
+            reviewer_years_elite *
+            months_since_joined, data=rev_filtered);
+summary(fit)
+
+res <- resid(fit)
+
+qplot(x=compliments_per_review, y = reviews_per_month, data=rev_filtered)

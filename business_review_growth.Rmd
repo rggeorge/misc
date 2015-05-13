@@ -1,0 +1,40 @@
+
+
+# Looking at growth of reviews per business
+growth <- read.csv("growth_curve.csv")
+gm <- matrix(unlist(growth), ncol=114)
+fgm <- gm[-1, -1]
+
+deriv <- function(vec){
+  l = length(vec)
+  (-vec[-1:-3] + 8*vec[c(-1, -2, -l)] - 
+     8*vec[c(-1, -l+1, -l)] + vec[-(l-2):-l] ) / 12 
+}
+
+find_inflection_pt <- function(vec){
+  vec <- vec[!is.na(vec)]
+  if(length(vec)>2 * 12){
+    first_deriv = deriv(vec)
+    second_deriv = deriv(first_deriv)
+    smoothed <- ((c(second_deriv,0,0) + c(0,second_deriv,0) + c(0,0,second_deriv))/3)[3:(length(second_deriv)-1)]
+    wmsd <- which.max(smoothed) + 5
+    print(wmsd)
+    vec[wmsd]
+  } else {NA}
+}
+
+ms = c()
+
+for(rx in 1:length(fgm[,1])){
+  vec <- as.numeric(fgm[rx,])
+  high_pt <- find_inflection_pt(vec)
+  ms <- c(ms, high_pt)
+}
+
+nams <- ms[!is.na(ms)]
+hist(nams, breaks=c(0, 1, 5, 10, 20, 50, 100, 200, 400))
+
+
+
+
+
